@@ -3,7 +3,7 @@
 
 ### Como configurar o pubsub no seu projeto: 
 1. Configurando acesso ao pubsub: https://cloud.google.com/docs/authentication/production#obtaining_and_providing_service_account_credentials_manually
-2. Como receber mensagens: https://cloud.google.com/pubsub/docs/quickstart-client-libraries#receive_messagesa
+2. Como receber mensagens: https://cloud.google.com/pubsub/docs/quickstart-client-libraries#receive_messages
 
 	
 #### Dependências do exemplo em GO:

@@ -26,7 +26,7 @@ func subscribe(fila string, callBack func(msg *pubsub.Message, cancel context.Ca
 	})
 }
 func main() {
-	err := subscribe(iDProduto+".remote", func(msg *pubsub.Message, cancel context.CancelFunc) {
+	err := subscribe(iDProduto+".pedidos", func(msg *pubsub.Message, cancel context.CancelFunc) {
 		defer msg.Ack()
 		fmt.Println("JSON do pedido: " + string(msg.Data))
 	})

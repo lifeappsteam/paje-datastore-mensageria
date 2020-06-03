@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"paje-datastore-mensageria/clientHttp"
+	"strings"
 	"sync"
 
 	"cloud.google.com/go/pubsub"
@@ -42,18 +43,22 @@ func subscribe(fila string, callBack func(msg *pubsub.Message)) error {
 }
 
 func main() {
+	idProdutoFila := os.Args[1]
 	formaAtuacao := os.Args[2]
+	var filaAtual = ".pedidos"
+	if !strings.Contains(idProdutoFila, ".") {
+		idProdutoFila += filaAtual
+	}
 	switch formaAtuacao {
 	case "ativo":
-		modoAtivo(os.Args[1], os.Args[3])
+		modoAtivo(idProdutoFila, os.Args[3])
 		break
 	case "passivo":
-		modoPassivo(os.Args[1], os.Args[3])
+		modoPassivo(idProdutoFila, os.Args[3])
 		break
 	default:
 		panic("A forma de atuação deve ser: ativo (envia os pedidos para o ip informado por http post) ou passivo (aguarda requisição para consultar a fila do pubsub)")
 	}
-
 }
 
 type memory struct {
@@ -83,7 +88,7 @@ func (m *memory) Clear() {
 	m.items = m.items[:0]
 }
 
-func modoPassivo(iDProduto string, port string) {
+func modoPassivo(idProdutoFila string, port string) {
 	gin.SetMode(gin.ReleaseMode)
 
 	r := gin.Default()
@@ -123,8 +128,7 @@ func modoPassivo(iDProduto string, port string) {
 	})
 
 	go r.Run("0.0.0.0:" + port)
-
-	err := subscribe(iDProduto+".pedidos", func(msg *pubsub.Message) {
+	err := subscribe(idProdutoFila, func(msg *pubsub.Message) {
 		fmt.Println("JSON do pedido: " + string(msg.Data))
 		memory.Add(msg.Data)
 		msg.Ack()
@@ -134,8 +138,8 @@ func modoPassivo(iDProduto string, port string) {
 	}
 }
 
-func modoAtivo(iDProduto string, destino string) {
-	err := subscribe(iDProduto+".pedidos", func(msg *pubsub.Message) {
+func modoAtivo(idProdutoFila string, destino string) {
+	err := subscribe(idProdutoFila, func(msg *pubsub.Message) {
 		fmt.Println("JSON do pedido: " + string(msg.Data))
 		_, _, requestError := clientHttp.DoRequest("http://"+destino, "POST", msg.Data)
 		if requestError != nil {
